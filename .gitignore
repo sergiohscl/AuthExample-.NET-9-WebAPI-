@@ -1,0 +1,46 @@
+
+# Ignore build outputs
+bin/
+obj/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider project files
+.idea/
+
+# Visual Studio Code settings
+.vscode/
+
+# ASP.NET Secrets
+secrets.json
+
+# ASP.NET Core EF Migrations snapshot (opcional, se quiser versionar migrations, remova esta linha)
+*MigrationsSnapshot.cs
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Dotnet ef tool artifacts
+.migrations/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Optional: exclude environment files
+.env
+
+# Global JetBrains Rider / ReSharper files
+*.DotSettings.user
+
+# Ignore crash dumps
+*.dmp
