@@ -1,5 +1,8 @@
 using System;
+using System.Net;
+using System.Net.Mail;
 using AuthExample.Data;
+using AuthExample.DTO;
 using AuthExample.Exceptions;
 using AuthExample.Models;
 using AuthExample.Models.DTO;
@@ -73,5 +76,58 @@ public class UserService : IUserService
             throw new NotFoundException("Nenhum usuário encontrado.");
 
         return users;
+    }
+
+    public void ForgotPassword(ForgotPasswordDto dto)
+    {
+        var user = _context.Users.FirstOrDefault(u => u.Username == dto.Username);
+        if (user == null)
+            throw new NotFoundException("Usuário não encontrado.");
+
+        if (!string.IsNullOrWhiteSpace(dto.Email))
+        {
+            user.Email = dto.Email.Trim();
+        }
+
+        if (!string.Equals(dto.Email.Trim(), user.Email?.Trim(), StringComparison.OrdinalIgnoreCase))
+            throw new UnauthorizedAccessException("E-mail não confere com o usuário.");
+
+        var token = Guid.NewGuid().ToString();
+        user.RefreshToken = token;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddMinutes(30);
+        _context.SaveChanges();
+
+        var link = $"http://localhost:4200/redefinir-senha?token={token}";
+
+        using var client = new SmtpClient("smtp.gmail.com")
+        {
+            Port = 587,
+            Credentials = new NetworkCredential("sergiohscl2@gmail.com", "zdlslcplorjxmakm"),
+            EnableSsl = true,
+        };
+
+        if (string.IsNullOrWhiteSpace(user.Email))
+            throw new InvalidOperationException("E-mail não pode estar vazio.");
+
+        var mail = new MailMessage("seuemail@gmail.com", user.Email)
+        {
+            Subject = "Recuperação de Senha",
+            Body = $"Clique no link para redefinir sua senha: {link}"
+        };
+
+        client.Send(mail);
+    }
+    
+    public void ResetPassword(ResetPasswordDto dto)
+    {
+        var user = _context.Users.FirstOrDefault(u => u.RefreshToken == dto.Token && u.RefreshTokenExpiry > DateTime.UtcNow);
+        if (user == null)
+            throw new UnauthorizedAccessException("Token inválido ou expirado.");
+
+        PasswordValidator.Validate(dto.NewPassword);
+        user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.RefreshToken = null;
+        user.RefreshTokenExpiry = null;
+        _context.SaveChanges();
     }
 }

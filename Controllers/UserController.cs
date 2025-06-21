@@ -32,7 +32,7 @@ public class UserController : ControllerBase
         return Ok(new { token, refreshToken = refresh });
     }
 
-   [AllowAnonymous]
+    [AllowAnonymous]
     [HttpPost("refresh")]
     public IActionResult RefreshToken([FromBody] RefreshTokenDto dto)
     {
@@ -49,5 +49,21 @@ public class UserController : ControllerBase
     public IActionResult GetAllUsers()
     {
         return Ok(_service.GetAllUsers());
+    }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public IActionResult ForgotPassword(ForgotPasswordDto dto)
+    {
+        _service.ForgotPassword(dto);
+        return Ok(new { message = "Se o usuário existir, o link foi enviado." });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public IActionResult ResetPassword(ResetPasswordDto dto)
+    {
+        _service.ResetPassword(dto);
+        return Ok(new { message = "Senha redefinida com sucesso." });
     }
 }
