@@ -151,7 +151,41 @@ Middleware para capturar exceções e retornar os status apropriados:
   "refreshToken": "Base64Gerado..."
 }
 ```
+---
 
+## 🚀 Deploy com Docker
+
+### Etapas:
+
+1. **Publicar a aplicação:**
+
+```bash
+dotnet publish -c Release -o out
+```
+
+2. **Criar e subir o container com Docker Compose:**
+
+```bash
+docker compose up --build -d
+```
+
+3. **Parar e remover o container:**
+
+```bash
+docker compose down
+```
+
+A API estará acessível em:
+
+```
+http://localhost:8080
+```
+
+Ou, se usar Swagger com prefixo:
+
+```
+http://localhost:8080/swagger
+```
 ---
 
 ## 👤 Autor

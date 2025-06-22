@@ -6,17 +6,22 @@ using AuthExample.Services.Interfaces;
 using AuthExample.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var key = "this_is_a_very_secure_jwt_key_1234567890"; // ≥ 32 caracteres
 
-// Adiciona o contexto com SQLite
+// Chave JWT (mínimo 32 caracteres)
+var key = "this_is_a_very_secure_jwt_key_1234567890";
+
+// Configura o banco SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=users.db"));
 
+// Adiciona serviços
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddJwtAuthentication(key);
 builder.Services.AddScoped<IUserService, UserService>();
+
+// Configura CORS para acesso do Angular
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp",
@@ -30,15 +35,27 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Sempre ativa o Swagger (inclusive em produção)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+    c.RoutePrefix = ""; // <- Swagger em "/"
+});
+//app.MapGet("/", () => Results.Redirect("/swagger"));
 
+// Middleware de exceções
 app.UseCustomExceptionHandler();
-app.MapControllers();
+
+// CORS vem antes de MapControllers
 app.UseCors("AllowAngularApp");
+
+// Autenticação e Autorização
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Mapear os controllers
+app.MapControllers();
+
+// Inicia o app
 app.Run();
